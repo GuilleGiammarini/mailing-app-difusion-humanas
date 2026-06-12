@@ -175,21 +175,57 @@ export default function Home() {
       <div style={{ flex: 1 }}>
         
         {/* HEADER CON LOGOS */}
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 20,
-          marginBottom: 20
-        }}>
-          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
-          
-          <h1 style={{ color: "#005CA9", margin: 0 }}>
-            UNVM · Sistema de Mailing
-          </h1>
+<div style={{
+  position: "relative",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 20,
+  marginBottom: 20
+}}>
 
-          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
-        </div>
+  {/* BOTONES ARRIBA DERECHA */}
+  <div style={{
+    position: "absolute",
+    right: 0,
+    top: 0,
+    display: "flex",
+    gap: 10
+  }}>
+    <button
+      style={{
+        padding: "6px 12px",
+        borderRadius: 6,
+        border: "none",
+        background: "#005CA9",
+        color: "#fff"
+      }}
+    >
+      Alumnos
+    </button>
+
+    <button
+      onClick={() => window.location.href = "/docentes"}
+      style={{
+        padding: "6px 12px",
+        borderRadius: 6,
+        border: "none",
+        background: "#E5E7EB",
+        cursor: "pointer"
+      }}
+    >
+      Docentes
+    </button>
+  </div>
+
+  <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
+  
+  <h1 style={{ color: "#005CA9", margin: 0 }}>
+    UNVM · Sistema de Mailing
+  </h1>
+
+  <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
+</div>
 
         {/* INTERESES */}
         <div style={{ background: "#fff", padding: 25, borderRadius: 12 }}>
