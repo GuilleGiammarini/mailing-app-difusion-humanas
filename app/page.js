@@ -1,8 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 
+const USER = "Difusionhumanas";
+const PASS = "humanas2026";
+
 /* =========================
-   CATEGORÍAS (NUEVO PANEL)
+   CATEGORÍAS
 ========================= */
 const CATEGORY_MAP = {
   SALUD: [
@@ -24,7 +27,7 @@ const CATEGORY_MAP = {
     "ALEMÁN"
   ],
 
-  IDIOMAS_EDUCACION:[
+  IDIOMAS_EDUCACION: [
     "LENGUAJE DE SEÑAS"
   ],
 
@@ -51,7 +54,7 @@ const CATEGORY_MAP = {
     "FOTOGRAFÍA"
   ],
 
-    HUMANIDADES: [
+  HUMANIDADES: [
     "JORNADAS MEDIAEVALIA",
     "DIPLO CS HUMANAS",
     "LENGUA Y LITERATURA",
@@ -69,13 +72,23 @@ const CATEGORY_MAP = {
   MUSICA: [
     "MUSICA"
   ],
-  
+
   OTROS: [
     "OTROS"
   ]
 };
 
 export default function Home() {
+  /* =========================
+     LOGIN STATE
+  ========================= */
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
+  const [logged, setLogged] = useState(false);
+
+  /* =========================
+     APP STATE
+  ========================= */
   const [interes, setInteres] = useState(null);
   const [emails, setEmails] = useState("");
   const [total, setTotal] = useState(0);
@@ -109,6 +122,97 @@ export default function Home() {
     navigator.clipboard.writeText(emails);
   };
 
+  /* =========================
+     LOGIN VIEW
+  ========================= */
+  if (!logged) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          fontFamily: "Arial",
+          background: "#f5f5f5"
+        }}
+      >
+        <div
+          style={{
+            background: "#fff",
+            padding: 40,
+            borderRadius: 12,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            textAlign: "center",
+            width: 320
+          }}
+        >
+          <img
+            src="/Membrete-UNVMHumanas.jpg"
+            alt="UNVM Humanas"
+            style={{
+              width: 200,
+              marginBottom: 20
+            }}
+          />
+
+          <h2 style={{ marginBottom: 20 }}>Acceso al sistema</h2>
+
+          <input
+            placeholder="Usuario"
+            onChange={(e) => setUser(e.target.value)}
+            style={{
+              padding: 10,
+              marginBottom: 10,
+              width: "100%",
+              borderRadius: 6,
+              border: "1px solid #ccc"
+            }}
+          />
+
+          <input
+            type="password"
+            placeholder="Clave"
+            onChange={(e) => setPass(e.target.value)}
+            style={{
+              padding: 10,
+              marginBottom: 15,
+              width: "100%",
+              borderRadius: 6,
+              border: "1px solid #ccc"
+            }}
+          />
+
+          <button
+            onClick={() => {
+              if (user === USER && pass === PASS) {
+                setLogged(true);
+              } else {
+                alert("Usuario o clave incorrectos");
+              }
+            }}
+            style={{
+              padding: 10,
+              width: "100%",
+              borderRadius: 6,
+              border: "none",
+              background: "#005CA9",
+              color: "#fff",
+              fontWeight: "bold",
+              cursor: "pointer"
+            }}
+          >
+            Ingresar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* =========================
+     MAIN APP
+  ========================= */
   return (
     <div
       style={{
@@ -119,9 +223,7 @@ export default function Home() {
         fontFamily: "Arial"
       }}
     >
-      {/* =========================
-          SIDEBAR CATEGORÍAS
-      ========================= */}
+      {/* SIDEBAR */}
       <div style={{ width: 280 }}>
         <h2 style={{ color: "#005CA9" }}>Categorías</h2>
 
@@ -144,7 +246,6 @@ export default function Home() {
           </div>
         ))}
 
-        {/* PANEL EXPLICATIVO */}
         <div
           style={{
             marginTop: 20,
@@ -169,9 +270,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* =========================
-          TU SISTEMA ORIGINAL
-      ========================= */}
+      {/* MAIN */}
       <div style={{ flex: 1 }}>
         <h1 style={{ color: "#005CA9", textAlign: "center" }}>
           UNVM · Sistema de Mailing
