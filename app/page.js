@@ -197,8 +197,29 @@ export default function Home() {
   gap: 10,
   marginBottom: 20
 }}>
-  <button>Alumnos</button>
-  <button>Docentes</button>
+  <button style={{
+    backgroundColor: "#005CA9",
+    color: "white",
+    border: "none",
+    padding: "10px 18px",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontWeight: "bold"
+  }}>
+    Alumnos
+  </button>
+
+  <button style={{
+    backgroundColor: "#E0E0E0",
+    color: "#333",
+    border: "none",
+    padding: "10px 18px",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontWeight: "bold"
+  }}>
+    Docentes
+  </button>
 </div>
         {/* INTERESES */}
         <div style={{ background: "#fff", padding: 25, borderRadius: 12 }}>
