@@ -8,86 +8,29 @@ const PASS = "humanas2026";
    CATEGORÍAS
 ========================= */
 const CATEGORY_MAP = {
-  SALUD: [
-    "ENFERMERÍA",
-    "SALUD MENTAL",
-    "MEDICINA",
-    "ALZHEIMER",
-    "ESTRÉS",
-    "TERAPIA OCUPACIONAL",
-    "LEY SALUD MENTAL",
-    "NUTRICIÓN"
-  ],
-
-  IDIOMAS: [
-    "INGLÉS",
-    "PORTUGUÉS",
-    "FRANCÉS",
-    "ITALIANO",
-    "ALEMÁN"
-  ],
-
-  IDIOMAS_EDUCACION: [
-    "LENGUAJE DE SEÑAS"
-  ],
-
-  EDUCACION: [
-    "DOCENCIA",
-    "EDUCACIÓN"
-  ],
-
-  EDUCACION_FISICA: [
-    "EDUCACION FISICA",
-    "DEPORTES",
-    "RUGBY",
-    "FÚTBOL"
-  ],
-
-  ARTE_COMUNITARIO: [
-    "ARTE",
-    "PATRIMONIO"
-  ],
-
-  COMUNICACION_DIGITAL: [
-    "AUDIOVISUAL",
-    "STREAMING",
-    "FOTOGRAFÍA"
-  ],
-
-  HUMANIDADES: [
-    "JORNADAS MEDIAEVALIA",
-    "DIPLO CS HUMANAS",
-    "LENGUA Y LITERATURA",
-    "JORNADAS GRADUADXS HUMANAS"
-  ],
-
-  TECNOLOGIA_EDUCATIVA: [
-    "TIC",
-    "TECNOLOGÍA",
-    "PLATAFORMAS",
-    "RECURSOS EDUCATIVOS",
-    "STREAMING"
-  ],
-
-  MUSICA: [
-    "MUSICA"
-  ],
-
-  OTROS: [
-    "OTROS"
-  ]
+  SALUD: ["ENFERMERÍA", "SALUD MENTAL", "MEDICINA", "ALZHEIMER", "ESTRÉS", "TERAPIA OCUPACIONAL", "LEY SALUD MENTAL", "NUTRICIÓN"],
+  IDIOMAS: ["INGLÉS", "PORTUGUÉS", "FRANCÉS", "ITALIANO", "ALEMÁN"],
+  IDIOMAS_EDUCACION: ["LENGUAJE DE SEÑAS"],
+  EDUCACION: ["DOCENCIA", "EDUCACIÓN"],
+  EDUCACION_FISICA: ["EDUCACION FISICA", "DEPORTES", "RUGBY", "FÚTBOL"],
+  ARTE_COMUNITARIO: ["ARTE", "PATRIMONIO"],
+  COMUNICACION_DIGITAL: ["AUDIOVISUAL", "STREAMING", "FOTOGRAFÍA"],
+  HUMANIDADES: ["JORNADAS MEDIAEVALIA", "DIPLO CS HUMANAS", "LENGUA Y LITERATURA", "JORNADAS GRADUADXS HUMANAS"],
+  TECNOLOGIA_EDUCATIVA: ["TIC", "TECNOLOGÍA", "PLATAFORMAS", "RECURSOS EDUCATIVOS", "STREAMING"],
+  MUSICA: ["MUSICA"],
+  OTROS: ["OTROS"]
 };
 
 export default function Home() {
   /* =========================
-     LOGIN STATE
+     LOGIN
   ========================= */
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [logged, setLogged] = useState(false);
 
   /* =========================
-     APP STATE
+     APP
   ========================= */
   const [interes, setInteres] = useState(null);
   const [emails, setEmails] = useState("");
@@ -95,25 +38,19 @@ export default function Home() {
   const [intereses, setIntereses] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
 
-  /* =========================
-     TRAER INTERESES
-  ========================= */
   useEffect(() => {
     fetch("/api/send")
-      .then((res) => res.json())
-      .then((data) => setIntereses(data.intereses || []));
+      .then((r) => r.json())
+      .then((d) => setIntereses(d.intereses || []));
   }, []);
 
-  /* =========================
-     TRAER EMAILS
-  ========================= */
   useEffect(() => {
     if (interes) {
       fetch(`/api/send?interes=${interes}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setEmails(data.emails || "");
-          setTotal(data.total || 0);
+        .then((r) => r.json())
+        .then((d) => {
+          setEmails(d.emails || "");
+          setTotal(d.total || 0);
         });
     }
   }, [interes]);
@@ -123,65 +60,45 @@ export default function Home() {
   };
 
   /* =========================
-     LOGIN VIEW
+     LOGIN SCREEN
   ========================= */
   if (!logged) {
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          fontFamily: "Arial",
-          background: "#f5f5f5"
-        }}
-      >
-        <div
-          style={{
-            background: "#fff",
-            padding: 40,
-            borderRadius: 12,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-            textAlign: "center",
-            width: 320
-          }}
-        >
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        background: "#f5f5f5",
+        fontFamily: "Arial"
+      }}>
+        <div style={{
+          background: "#fff",
+          padding: 40,
+          borderRadius: 12,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          textAlign: "center",
+          width: 320
+        }}>
           <img
             src="/Membrete-UNVMHumanas.jpg"
-            alt="UNVM Humanas"
-            style={{
-              width: 200,
-              marginBottom: 20
-            }}
+            style={{ width: 200, marginBottom: 20 }}
+            alt="UNVM"
           />
 
-          <h2 style={{ marginBottom: 20 }}>Acceso al sistema</h2>
+          <h3>Acceso al sistema</h3>
 
           <input
             placeholder="Usuario"
             onChange={(e) => setUser(e.target.value)}
-            style={{
-              padding: 10,
-              marginBottom: 10,
-              width: "100%",
-              borderRadius: 6,
-              border: "1px solid #ccc"
-            }}
+            style={{ width: "100%", padding: 10, marginBottom: 10 }}
           />
 
           <input
             type="password"
             placeholder="Clave"
             onChange={(e) => setPass(e.target.value)}
-            style={{
-              padding: 10,
-              marginBottom: 15,
-              width: "100%",
-              borderRadius: 6,
-              border: "1px solid #ccc"
-            }}
+            style={{ width: "100%", padding: 10, marginBottom: 15 }}
           />
 
           <button
@@ -193,13 +110,12 @@ export default function Home() {
               }
             }}
             style={{
-              padding: 10,
               width: "100%",
-              borderRadius: 6,
-              border: "none",
+              padding: 10,
               background: "#005CA9",
               color: "#fff",
-              fontWeight: "bold",
+              border: "none",
+              borderRadius: 6,
               cursor: "pointer"
             }}
           >
@@ -211,18 +127,11 @@ export default function Home() {
   }
 
   /* =========================
-     MAIN APP
+     APP PRINCIPAL
   ========================= */
   return (
-    <div
-      style={{
-        display: "flex",
-        maxWidth: 1200,
-        margin: "40px auto",
-        gap: 20,
-        fontFamily: "Arial"
-      }}
-    >
+    <div style={{ display: "flex", maxWidth: 1200, margin: "40px auto", gap: 20, fontFamily: "Arial" }}>
+      
       {/* SIDEBAR */}
       <div style={{ width: 280 }}>
         <h2 style={{ color: "#005CA9" }}>Categorías</h2>
@@ -246,59 +155,57 @@ export default function Home() {
           </div>
         ))}
 
-        <div
-          style={{
-            marginTop: 20,
-            padding: 15,
-            border: "1px solid #ddd",
-            borderRadius: 10,
-            minHeight: 150
-          }}
-        >
+        <div style={{ marginTop: 20, padding: 15, border: "1px solid #ddd", borderRadius: 10 }}>
           {categoriaActiva ? (
             <>
               <h4>{categoriaActiva}</h4>
               <ul>
-                {CATEGORY_MAP[categoriaActiva].map((item) => (
-                  <li key={item}>{item}</li>
+                {CATEGORY_MAP[categoriaActiva].map((i) => (
+                  <li key={i}>{i}</li>
                 ))}
               </ul>
             </>
           ) : (
-            <p>Pasa el mouse o selecciona una categoría</p>
+            <p>Pasa el mouse o selecciona categoría</p>
           )}
         </div>
       </div>
 
       {/* MAIN */}
       <div style={{ flex: 1 }}>
-        <h1 style={{ color: "#005CA9", textAlign: "center" }}>
-          UNVM · Sistema de Mailing
-        </h1>
+        
+        {/* HEADER CON LOGOS */}
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 20,
+          marginBottom: 20
+        }}>
+          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
+          
+          <h1 style={{ color: "#005CA9", margin: 0 }}>
+            UNVM · Sistema de Mailing
+          </h1>
 
-        <div
-          style={{
-            background: "#fff",
-            padding: 25,
-            borderRadius: 12,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            marginBottom: 20
-          }}
-        >
+          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
+        </div>
+
+        {/* INTERESES */}
+        <div style={{ background: "#fff", padding: 25, borderRadius: 12 }}>
           <h3>Seleccionar interés</h3>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {intereses.map((i, index) => (
+            {intereses.map((i) => (
               <button
-                key={index}
+                key={i}
                 onClick={() => setInteres(i)}
                 style={{
                   padding: "10px 15px",
                   borderRadius: 8,
                   border: "none",
                   cursor: "pointer",
-                  fontWeight: "bold",
-                  backgroundColor: interes === i ? "#005CA9" : "#E5E7EB",
+                  background: interes === i ? "#005CA9" : "#E5E7EB",
                   color: interes === i ? "#fff" : "#111"
                 }}
               >
@@ -308,43 +215,14 @@ export default function Home() {
           </div>
         </div>
 
+        {/* EMAILS */}
         {interes && (
-          <div
-            style={{
-              background: "#fff",
-              padding: 25,
-              borderRadius: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-            }}
-          >
-            <h3>
-              {interes} — {total} emails
-            </h3>
+          <div style={{ marginTop: 20, background: "#fff", padding: 25, borderRadius: 12 }}>
+            <h3>{interes} — {total} emails</h3>
 
-            <textarea
-              value={emails}
-              readOnly
-              rows={8}
-              style={{
-                width: "100%",
-                padding: 10,
-                borderRadius: 8,
-                border: "1px solid #ccc",
-                marginBottom: 10
-              }}
-            />
+            <textarea value={emails} readOnly style={{ width: "100%", height: 150 }} />
 
-            <button
-              onClick={copiar}
-              style={{
-                padding: "10px 15px",
-                borderRadius: 8,
-                border: "none",
-                backgroundColor: "#F2A900",
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}
-            >
+            <button onClick={copiar} style={{ marginTop: 10, padding: 10, background: "#F2A900" }}>
               Copiar emails
             </button>
           </div>
