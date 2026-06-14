@@ -1,0 +1,191 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+/* =========================
+   CATEGORÍAS
+========================= */
+const CATEGORY_MAP = {
+  SALUD: ["ENFERMERÍA", "SALUD MENTAL", "MEDICINA", "ALZHEIMER", "ESTRÉS", "TERAPIA OCUPACIONAL", "LEY SALUD MENTAL", "NUTRICIÓN"],
+  IDIOMAS: ["INGLÉS", "PORTUGUÉS", "FRANCÉS", "ITALIANO", "ALEMÁN"],
+  IDIOMAS_EDUCACION: ["LENGUAJE DE SEÑAS"],
+  EDUCACION: ["DOCENCIA", "EDUCACIÓN"],
+  EDUCACION_FISICA: ["EDUCACION FISICA", "DEPORTES", "RUGBY", "FÚTBOL"],
+  ARTE_COMUNITARIO: ["ARTE", "PATRIMONIO"],
+  COMUNICACION_DIGITAL: ["AUDIOVISUAL", "STREAMING", "FOTOGRAFÍA"],
+  HUMANIDADES: ["JORNADAS MEDIAEVALIA", "DIPLO CS HUMANAS", "LENGUA Y LITERATURA", "JORNADAS GRADUADXS HUMANAS"],
+  TECNOLOGIA_EDUCATIVA: ["TIC", "TECNOLOGÍA", "PLATAFORMAS", "RECURSOS EDUCATIVOS", "STREAMING"],
+  MUSICA: ["MUSICA"],
+  OTROS: ["OTROS"]
+};
+
+export default function AlumnosPage() {
+  const router = useRouter();
+
+  /* 🔒 PROTECCIÓN LOGIN */
+  useEffect(() => {
+    const auth = localStorage.getItem("auth");
+    if (!auth) {
+      router.push("/");
+    }
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem("auth");
+    router.push("/");
+  };
+
+  /* =========================
+     APP
+  ========================= */
+  const [interes, setInteres] = useState(null);
+  const [emails, setEmails] = useState("");
+  const [total, setTotal] = useState(0);
+  const [intereses, setIntereses] = useState([]);
+  const [categoriaActiva, setCategoriaActiva] = useState(null);
+
+  /* 🔹 TRAER INTERESES */
+  useEffect(() => {
+    fetch("/api/send")
+      .then((r) => r.json())
+      .then((d) => setIntereses(d.intereses || []));
+  }, []);
+
+  /* 🔹 TRAER EMAILS */
+  useEffect(() => {
+    if (interes) {
+      fetch(`/api/send?interes=${interes}`)
+        .then((r) => r.json())
+        .then((d) => {
+          setEmails(d.emails || "");
+          setTotal(d.total || 0);
+        });
+    }
+  }, [interes]);
+
+  const copiar = () => {
+    navigator.clipboard.writeText(emails);
+  };
+
+  return (
+    <div style={{ display: "flex", maxWidth: 1200, margin: "40px auto", gap: 20, fontFamily: "Arial" }}>
+      
+      {/* SIDEBAR */}
+      <div style={{ width: 280 }}>
+        <h2 style={{ color: "#005CA9" }}>Categorías</h2>
+
+        {Object.keys(CATEGORY_MAP).map((cat) => (
+          <div
+            key={cat}
+            onMouseEnter={() => setCategoriaActiva(cat)}
+            onClick={() => setCategoriaActiva(cat)}
+            style={{
+              padding: 12,
+              marginBottom: 8,
+              borderRadius: 8,
+              cursor: "pointer",
+              background: categoriaActiva === cat ? "#005CA9" : "#eee",
+              color: categoriaActiva === cat ? "#fff" : "#000",
+              fontWeight: "bold"
+            }}
+          >
+            {cat}
+          </div>
+        ))}
+
+        <div style={{ marginTop: 20, padding: 15, border: "1px solid #ddd", borderRadius: 10 }}>
+          {categoriaActiva ? (
+            <>
+              <h4>{categoriaActiva}</h4>
+              <ul>
+                {CATEGORY_MAP[categoriaActiva].map((i) => (
+                  <li key={i}>{i}</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p>Pasa el mouse o selecciona categoría</p>
+          )}
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div style={{ flex: 1 }}>
+        
+        {/* HEADER */}
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 20,
+          marginBottom: 10
+        }}>
+          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
+          <h1 style={{ color: "#005CA9", margin: 0 }}>
+            UNVM · Sistema de Mailing
+          </h1>
+          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
+        </div>
+
+        {/* BOTONES */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+          
+          <Link href="/alumnos">
+            <button style={{ backgroundColor: "#005CA9", color: "white", padding: "10px 18px", borderRadius: 6 }}>
+              Alumnos
+            </button>
+          </Link>
+
+          <Link href="/docentes">
+            <button style={{ backgroundColor: "#E0E0E0", padding: "10px 18px", borderRadius: 6 }}>
+              Docentes
+            </button>
+          </Link>
+
+          <button onClick={logout} style={{ backgroundColor: "#d9534f", color: "#fff", padding: "10px 18px", borderRadius: 6 }}>
+            Cerrar sesión
+          </button>
+        </div>
+
+        {/* INTERESES */}
+        <div style={{ background: "#fff", padding: 25, borderRadius: 12 }}>
+          <h3>Seleccionar interés</h3>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {intereses.map((i) => (
+              <button
+                key={i}
+                onClick={() => setInteres(i)}
+                style={{
+                  padding: "10px 15px",
+                  borderRadius: 8,
+                  border: "none",
+                  cursor: "pointer",
+                  background: interes === i ? "#005CA9" : "#E5E7EB",
+                  color: interes === i ? "#fff" : "#111"
+                }}
+              >
+                {i}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* EMAILS */}
+        {interes && (
+          <div style={{ marginTop: 20, background: "#fff", padding: 25, borderRadius: 12 }}>
+            <h3>{interes} — {total} emails</h3>
+
+            <textarea value={emails} readOnly style={{ width: "100%", height: 150 }} />
+
+            <button onClick={copiar} style={{ marginTop: 10, padding: 10, background: "#F2A900" }}>
+              Copiar emails
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

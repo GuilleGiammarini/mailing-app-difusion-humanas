@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function DocentesPage() {
+  const router = useRouter();
+
   const [docentes, setDocentes] = useState([]);
   const [filtros, setFiltros] = useState([]);
   const [filtroActivo, setFiltroActivo] = useState("");
 
-  // 🔹 TRAER FILTROS
+  /* 🔐 PROTECCIÓN LOGIN */
+  useEffect(() => {
+    const auth = localStorage.getItem("auth");
+    if (!auth) {
+      router.push("/");
+    }
+  }, []);
+
+  /* 🔹 TRAER FILTROS */
   useEffect(() => {
     fetch("/api/docentes")
       .then((res) => res.json())
@@ -16,7 +27,7 @@ export default function DocentesPage() {
       });
   }, []);
 
-  // 🔹 TRAER DOCENTES SEGÚN FILTRO
+  /* 🔹 TRAER DOCENTES */
   useEffect(() => {
     if (!filtroActivo) return;
 
@@ -27,7 +38,6 @@ export default function DocentesPage() {
       });
   }, [filtroActivo]);
 
-  // 🔹 COPIAR EMAILS
   const copiarEmails = () => {
     const lista = docentes.map((d) => d.correo).join(",");
     navigator.clipboard.writeText(lista);
@@ -36,53 +46,40 @@ export default function DocentesPage() {
 
   return (
     <div style={{ padding: 20, fontFamily: "Arial" }}>
-      {/* 🔥 HEADER CON IMÁGENES */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 20,
-          marginBottom: 20,
-        }}
-      >
-        <img
-          src="/Membrete-UNVMHumanas.jpg"
-          alt="logo"
-          style={{ height: 50 }}
-        />
+      
+      {/* HEADER */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 20,
+        marginBottom: 20,
+      }}>
+        <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 50 }} />
 
         <h1 style={{ color: "#005CA9", margin: 0 }}>
           UNVM · Sistema de Mailing
         </h1>
 
-        <img
-          src="/Membrete-UNVMHumanas.jpg"
-          alt="logo"
-          style={{ height: 50 }}
-        />
+        <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 50 }} />
       </div>
 
       {/* BOTONES */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 10,
-          marginBottom: 20,
-        }}
-      >
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: 10,
+        marginBottom: 20,
+      }}>
         <button
+          onClick={() => router.push("/alumnos")}
           style={{
             backgroundColor: "#E0E0E0",
-            color: "#333",
-            border: "none",
             padding: "10px 18px",
             borderRadius: 6,
-            cursor: "pointer",
             fontWeight: "bold",
+            cursor: "pointer",
           }}
-          onClick={() => (window.location.href = "/")}
         >
           Alumnos
         </button>
@@ -91,48 +88,56 @@ export default function DocentesPage() {
           style={{
             backgroundColor: "#005CA9",
             color: "white",
-            border: "none",
             padding: "10px 18px",
             borderRadius: 6,
-            cursor: "pointer",
             fontWeight: "bold",
           }}
         >
           Docentes
         </button>
+
+        <button
+          onClick={() => {
+            localStorage.removeItem("auth");
+            router.push("/");
+          }}
+          style={{
+            backgroundColor: "#d9534f",
+            color: "#fff",
+            padding: "10px 18px",
+            borderRadius: 6,
+            fontWeight: "bold",
+          }}
+        >
+          Cerrar sesión
+        </button>
       </div>
 
+      {/* CONTENIDO */}
       <div style={{ display: "flex", gap: 20 }}>
-        {/* 🧱 IZQUIERDA */}
+        
+        {/* IZQUIERDA */}
         <div style={{ width: "35%" }}>
           <h3>Datos Docentes</h3>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 10,
-              maxHeight: "75vh",
-              overflowY: "auto",
-              paddingRight: 10,
-            }}
-          >
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 10,
+            maxHeight: "75vh",
+            overflowY: "auto",
+          }}>
             {docentes.map((doc, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#EDEDED",
-                  padding: "8px 10px",
-                  borderRadius: 6,
-                  fontSize: 12,
-                  lineHeight: 1.2,
-                }}
-              >
+              <div key={i} style={{
+                backgroundColor: "#EDEDED",
+                padding: 8,
+                borderRadius: 6,
+                fontSize: 12,
+              }}>
                 <div style={{ fontWeight: "bold" }}>
                   {doc.nombre}
                 </div>
-
-                <div style={{ fontSize: 11, color: "#555" }}>
+                <div style={{ fontSize: 11 }}>
                   {doc.carrera}
                 </div>
               </div>
@@ -140,7 +145,7 @@ export default function DocentesPage() {
           </div>
         </div>
 
-        {/* 🧱 DERECHA */}
+        {/* DERECHA */}
         <div style={{ width: "65%" }}>
           <h3>Selecciona Designación</h3>
 
@@ -150,14 +155,12 @@ export default function DocentesPage() {
                 key={i}
                 onClick={() => setFiltroActivo(f)}
                 style={{
-                  backgroundColor:
-                    filtroActivo === f ? "#005CA9" : "#E0E0E0",
+                  backgroundColor: filtroActivo === f ? "#005CA9" : "#E0E0E0",
                   color: filtroActivo === f ? "white" : "#333",
-                  border: "none",
                   padding: "8px 14px",
                   borderRadius: 6,
-                  cursor: "pointer",
                   fontWeight: "bold",
+                  cursor: "pointer",
                 }}
               >
                 {f}
@@ -166,18 +169,12 @@ export default function DocentesPage() {
           </div>
 
           <div style={{ marginTop: 20 }}>
-            <h4>
-              {filtroActivo} — {docentes.length} docentes
-            </h4>
+            <h4>{filtroActivo} — {docentes.length} docentes</h4>
 
             <textarea
               value={docentes.map((d) => d.correo).join(",")}
               readOnly
-              style={{
-                width: "100%",
-                height: 120,
-                marginTop: 10,
-              }}
+              style={{ width: "100%", height: 120 }}
             />
 
             <button
@@ -185,9 +182,7 @@ export default function DocentesPage() {
               style={{
                 marginTop: 10,
                 backgroundColor: "#FFD600",
-                border: "none",
-                padding: "10px 15px",
-                cursor: "pointer",
+                padding: 10,
                 fontWeight: "bold",
               }}
             >
