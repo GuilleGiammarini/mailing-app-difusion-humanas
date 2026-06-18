@@ -3,33 +3,78 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+/* 🧠 MAPA REAL */
+const carrerasPorCategoria = {
+  SALUD: [
+    "MEDICINA",
+    "ENFERMERÍA",
+    "LIC. EN TERAPIA OCUPACIONAL",
+  ],
+  EDUCACIÓN: [
+    "PSICOPEDAGOGÍA",
+    "LIC GESTIÓN EDUCATIVA",
+    "CIENCIAS DE LA EDUCACIÓN",
+    "PROF LENGUA INGLESA",
+    "PROF LENGUA Y LITERATURA",
+    "LIC EN LENGUA Y LITERATURA",
+    "LICENCIATURA EN EDUCACIÓN FISICA",
+    "PROF EN MATEMÁTICA",
+    "ESPACIO COMÚN A LOS PROFESORADOS",
+    "LIC EN CIENCIAS",
+    "CTFC",
+    "TUILSA-E",
+    "PEUAM",
+    "LABORATORIO DE INVESTIGACION Y PRODUCCIÓN EN CS HUMANAS",
+  ],
+  ARTE: [
+    "DISEÑO",
+    "LIC EN COMPOSICION",
+    "LIC INTERPRET VOCAL",
+    "ESPECIALIZACION EN ARTE COMUNITARIO",
+  ],
+  POSGRADOS: [
+    "ESPECIALIZACION EN DOCENCIA UNIVERSITARIA",
+    "DOCTORADO EN PEDAGOGÍA",
+    "ESPECIALIZACIÓN EN TECNOLOGÍAS DE LA INFORMACIÓN...",
+  ],
+  PUICYM: ["PUICYM"],
+};
+
 export default function DocentesPage() {
   const router = useRouter();
 
   const [docentes, setDocentes] = useState([]);
   const [filtros, setFiltros] = useState([]);
   const [filtroActivo, setFiltroActivo] = useState("");
+  const [carreraActiva, setCarreraActiva] = useState("");
 
-  /* 🔐 PROTECCIÓN LOGIN */
+  /* 🔐 LOGIN */
   useEffect(() => {
     const auth = localStorage.getItem("auth");
-    if (!auth) {
-      router.push("/");
-    }
+    if (!auth) router.push("/");
   }, []);
 
-  /* 🔹 TRAER FILTROS */
+  /* 🔹 FILTROS */
   useEffect(() => {
     fetch("/api/docentes")
       .then((res) => res.json())
       .then((data) => {
-        setFiltros(data.filtros || []);
+        const filtrosUnicos = [
+          ...new Set(
+            (data.filtros || []).flatMap((f) =>
+              f.toUpperCase().split(" Y ").map((c) => c.trim())
+            )
+          ),
+        ];
+        setFiltros(filtrosUnicos);
       });
   }, []);
 
-  /* 🔹 TRAER DOCENTES */
+  /* 🔹 DOCENTES */
   useEffect(() => {
     if (!filtroActivo) return;
+
+    setCarreraActiva("");
 
     fetch(`/api/docentes?filtro=${filtroActivo}`)
       .then((res) => res.json())
@@ -38,8 +83,29 @@ export default function DocentesPage() {
       });
   }, [filtroActivo]);
 
+  /* 🔧 NORMALIZADOR */
+  const normalizar = (t) =>
+    t
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  /* 🔹 FILTRO FINAL */
+  const docentesFiltrados = carreraActiva
+    ? docentes.filter((d) =>
+        (d.carrera || "")
+          .split("|")
+          .map((c) => normalizar(c))
+          .includes(normalizar(carreraActiva))
+      )
+    : docentes;
+
+  const carrerasDisponibles =
+    carrerasPorCategoria[filtroActivo] || [];
+
   const copiarEmails = () => {
-    const lista = docentes.map((d) => d.correo).join(",");
+    const lista = docentesFiltrados.map((d) => d.correo).join(",");
     navigator.clipboard.writeText(lista);
     alert("Emails copiados");
   };
@@ -47,7 +113,7 @@ export default function DocentesPage() {
   return (
     <div style={{ padding: 20, fontFamily: "Arial" }}>
       
-      {/* HEADER */}
+      {/* HEADER ORIGINAL */}
       <div style={{
         display: "flex",
         alignItems: "center",
@@ -116,7 +182,7 @@ export default function DocentesPage() {
       {/* CONTENIDO */}
       <div style={{ display: "flex", gap: 20 }}>
         
-        {/* IZQUIERDA */}
+        {/* IZQUIERDA (INTACTO) */}
         <div style={{ width: "35%" }}>
           <h3>Datos Docentes</h3>
 
@@ -127,7 +193,7 @@ export default function DocentesPage() {
             maxHeight: "75vh",
             overflowY: "auto",
           }}>
-            {docentes.map((doc, i) => (
+            {docentesFiltrados.map((doc, i) => (
               <div key={i} style={{
                 backgroundColor: "#EDEDED",
                 padding: 8,
@@ -145,9 +211,9 @@ export default function DocentesPage() {
           </div>
         </div>
 
-        {/* DERECHA */}
+        {/* DERECHA (MISMO ESTILO) */}
         <div style={{ width: "65%" }}>
-          <h3>Selecciona Designación</h3>
+          <h3>Selecciona Categoría</h3>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {filtros.map((f, i) => (
@@ -168,11 +234,51 @@ export default function DocentesPage() {
             ))}
           </div>
 
+          {/* 🔥 NUEVO PERO CON ESTILO ORIGINAL */}
+          {filtroActivo && (
+            <>
+              <h3 style={{ marginTop: 20 }}>Filtrar por Carrera</h3>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                <button
+                  onClick={() => setCarreraActiva("")}
+                  style={{
+                    backgroundColor: carreraActiva === "" ? "#333" : "#ddd",
+                    color: carreraActiva === "" ? "white" : "#000",
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                  }}
+                >
+                  Todas
+                </button>
+
+                {carrerasDisponibles.map((c, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCarreraActiva(c)}
+                    style={{
+                      backgroundColor: carreraActiva === c ? "#333" : "#ddd",
+                      color: carreraActiva === c ? "white" : "#000",
+                      padding: "6px 10px",
+                      borderRadius: 6,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
           <div style={{ marginTop: 20 }}>
-            <h4>{filtroActivo} — {docentes.length} docentes</h4>
+            <h4>
+              {filtroActivo} {carreraActiva && `- ${carreraActiva}`} — {docentesFiltrados.length} docentes
+            </h4>
 
             <textarea
-              value={docentes.map((d) => d.correo).join(",")}
+              value={docentesFiltrados.map((d) => d.correo).join(",")}
               readOnly
               style={{ width: "100%", height: 120 }}
             />

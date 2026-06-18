@@ -15,8 +15,9 @@ const CATEGORY_MAP = {
   EDUCACION_FISICA: ["EDUCACION FISICA", "DEPORTES", "RUGBY", "FÚTBOL"],
   ARTE_COMUNITARIO: ["ARTE", "PATRIMONIO"],
   COMUNICACION_DIGITAL: ["AUDIOVISUAL", "STREAMING", "FOTOGRAFÍA"],
-  HUMANIDADES: ["JORNADAS MEDIAEVALIA", "DIPLO CS HUMANAS", "LENGUA Y LITERATURA", "JORNADAS GRADUADXS HUMANAS"],
+  HUMANIDADES: ["JORNADAS MEDIAEVALIA", "DIPLO CS HUMANAS", "JORNADAS GRADUADXS HUMANAS"],
   TECNOLOGIA_EDUCATIVA: ["TIC", "TECNOLOGÍA", "PLATAFORMAS", "RECURSOS EDUCATIVOS", "STREAMING"],
+  LENGUA_LITERATURA: ["LENGUA Y LITERATURA"],
   MUSICA: ["MUSICA"],
   OTROS: ["OTROS"]
 };
@@ -24,12 +25,10 @@ const CATEGORY_MAP = {
 export default function AlumnosPage() {
   const router = useRouter();
 
-  /* 🔒 PROTECCIÓN LOGIN */
+  /* 🔒 LOGIN */
   useEffect(() => {
     const auth = localStorage.getItem("auth");
-    if (!auth) {
-      router.push("/");
-    }
+    if (!auth) router.push("/");
   }, []);
 
   const logout = () => {
@@ -38,13 +37,16 @@ export default function AlumnosPage() {
   };
 
   /* =========================
-     APP
+     STATES
   ========================= */
   const [interes, setInteres] = useState(null);
-  const [emails, setEmails] = useState("");
   const [total, setTotal] = useState(0);
   const [intereses, setIntereses] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
+
+  // 🔥 NUEVO: chunks de emails
+  const [emailChunks, setEmailChunks] = useState([]);
+  const [chunkIndex, setChunkIndex] = useState(0);
 
   /* 🔹 TRAER INTERESES */
   useEffect(() => {
@@ -59,14 +61,28 @@ export default function AlumnosPage() {
       fetch(`/api/send?interes=${interes}`)
         .then((r) => r.json())
         .then((d) => {
-          setEmails(d.emails || "");
+          const allEmails = (d.emails || "")
+            .split(",")
+            .map((e) => e.trim())
+            .filter(Boolean);
+
+          // dividir en bloques de 100
+          const chunks = [];
+          for (let i = 0; i < allEmails.length; i += 100) {
+            chunks.push(allEmails.slice(i, i + 100));
+          }
+
+          setEmailChunks(chunks);
+          setChunkIndex(0);
           setTotal(d.total || 0);
         });
     }
   }, [interes]);
 
+  /* 🔹 COPIAR */
   const copiar = () => {
-    navigator.clipboard.writeText(emails);
+    const current = emailChunks[chunkIndex]?.join(",") || "";
+    navigator.clipboard.writeText(current);
   };
 
   return (
@@ -176,13 +192,45 @@ export default function AlumnosPage() {
         {/* EMAILS */}
         {interes && (
           <div style={{ marginTop: 20, background: "#fff", padding: 25, borderRadius: 12 }}>
+            
             <h3>{interes} — {total} emails</h3>
 
-            <textarea value={emails} readOnly style={{ width: "100%", height: 150 }} />
+            {/* INFO BLOQUE */}
+            <p>
+              Mostrando bloque de "100" contactos {chunkIndex + 1} de {emailChunks.length}
+            </p>
+
+            {/* SELECTOR BLOQUES */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+              {emailChunks.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setChunkIndex(i)}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    border: "none",
+                    cursor: "pointer",
+                    background: chunkIndex === i ? "#005CA9" : "#E5E7EB",
+                    color: chunkIndex === i ? "#fff" : "#111"
+                  }}
+                >
+                  Bloque {i + 1}
+                </button>
+              ))}
+            </div>
+
+            {/* TEXTAREA */}
+            <textarea
+              value={emailChunks[chunkIndex]?.join(",") || ""}
+              readOnly
+              style={{ width: "100%", height: 150 }}
+            />
 
             <button onClick={copiar} style={{ marginTop: 10, padding: 10, background: "#F2A900" }}>
-              Copiar emails
+              Copiar bloque
             </button>
+
           </div>
         )}
       </div>
