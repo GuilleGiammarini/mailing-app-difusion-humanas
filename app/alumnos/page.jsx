@@ -19,13 +19,13 @@ const CATEGORY_MAP = {
   TECNOLOGIA_EDUCATIVA: ["TIC", "TECNOLOGÍA", "PLATAFORMAS", "RECURSOS EDUCATIVOS", "STREAMING"],
   LENGUA_LITERATURA: ["LENGUA Y LITERATURA"],
   MUSICA: ["MUSICA"],
+  MATEMATICA: ["MATEMATICA"],
   OTROS: ["OTROS"]
 };
 
 export default function AlumnosPage() {
   const router = useRouter();
 
-  /* 🔒 LOGIN */
   useEffect(() => {
     const auth = localStorage.getItem("auth");
     if (!auth) router.push("/");
@@ -36,26 +36,20 @@ export default function AlumnosPage() {
     router.push("/");
   };
 
-  /* =========================
-     STATES
-  ========================= */
   const [interes, setInteres] = useState(null);
   const [total, setTotal] = useState(0);
   const [intereses, setIntereses] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
 
-  // 🔥 NUEVO: chunks de emails
   const [emailChunks, setEmailChunks] = useState([]);
   const [chunkIndex, setChunkIndex] = useState(0);
 
-  /* 🔹 TRAER INTERESES */
   useEffect(() => {
     fetch("/api/send")
       .then((r) => r.json())
       .then((d) => setIntereses(d.intereses || []));
   }, []);
 
-  /* 🔹 TRAER EMAILS */
   useEffect(() => {
     if (interes) {
       fetch(`/api/send?interes=${interes}`)
@@ -66,7 +60,6 @@ export default function AlumnosPage() {
             .map((e) => e.trim())
             .filter(Boolean);
 
-          // dividir en bloques de 100
           const chunks = [];
           for (let i = 0; i < allEmails.length; i += 100) {
             chunks.push(allEmails.slice(i, i + 100));
@@ -79,161 +72,270 @@ export default function AlumnosPage() {
     }
   }, [interes]);
 
-  /* 🔹 COPIAR */
   const copiar = () => {
     const current = emailChunks[chunkIndex]?.join(",") || "";
     navigator.clipboard.writeText(current);
   };
 
-  return (
-    <div style={{ display: "flex", maxWidth: 1200, margin: "40px auto", gap: 20, fontFamily: "Arial" }}>
-      
-      {/* SIDEBAR */}
-      <div style={{ width: 280 }}>
-        <h2 style={{ color: "#005CA9" }}>Categorías</h2>
+  /* 🔥 LIMPIAR FILTROS */
+  const limpiarFiltros = () => {
+    setInteres(null);
+    setCategoriaActiva(null);
+    setEmailChunks([]);
+    setChunkIndex(0);
+    setTotal(0);
+  };
 
-        {Object.keys(CATEGORY_MAP).map((cat) => (
-          <div
-            key={cat}
-            onMouseEnter={() => setCategoriaActiva(cat)}
-            onClick={() => setCategoriaActiva(cat)}
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundImage: "url('/FONDO_alumnos.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+        position: "relative",
+        padding: 20,
+        display: "flex",
+        justifyContent: "center",
+        fontFamily: "Arial",
+      }}
+    >
+      {/* OVERLAY */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.35)",
+          zIndex: 0,
+        }}
+      />
+
+      {/* CONTENIDO */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1200,
+          display: "flex",
+          gap: 20,
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+
+        {/* SIDEBAR */}
+        <div style={glass()}>
+          <h2 style={{ color: "white" }}>Categorías</h2>
+
+          {Object.keys(CATEGORY_MAP).map((cat) => (
+            <div
+              key={cat}
+              onMouseEnter={() => setCategoriaActiva(cat)}
+              onClick={() => setCategoriaActiva(cat)}
+              style={pill(cat === categoriaActiva)}
+            >
+              {cat}
+            </div>
+          ))}
+
+          <button
+            onClick={limpiarFiltros}
             style={{
-              padding: 12,
-              marginBottom: 8,
-              borderRadius: 8,
+              marginTop: 15,
+              width: "100%",
+              padding: "10px",
+              borderRadius: 10,
+              border: "none",
               cursor: "pointer",
-              background: categoriaActiva === cat ? "#005CA9" : "#eee",
-              color: categoriaActiva === cat ? "#fff" : "#000",
+              background: "#ff4d4d",
+              color: "white",
               fontWeight: "bold"
             }}
           >
-            {cat}
-          </div>
-        ))}
-
-        <div style={{ marginTop: 20, padding: 15, border: "1px solid #ddd", borderRadius: 10 }}>
-          {categoriaActiva ? (
-            <>
-              <h4>{categoriaActiva}</h4>
-              <ul>
-                {CATEGORY_MAP[categoriaActiva].map((i) => (
-                  <li key={i}>{i}</li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p>Pasa el mouse o selecciona categoría</p>
-          )}
-        </div>
-      </div>
-
-      {/* MAIN */}
-      <div style={{ flex: 1 }}>
-        
-        {/* HEADER */}
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 20,
-          marginBottom: 10
-        }}>
-          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
-          <h1 style={{ color: "#005CA9", margin: 0 }}>
-            UNVM · Sistema de Mailing
-          </h1>
-          <img src="/Membrete-UNVMHumanas.jpg" style={{ height: 60 }} />
-        </div>
-
-        {/* BOTONES */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
-          
-          <Link href="/alumnos">
-            <button style={{ backgroundColor: "#005CA9", color: "white", padding: "10px 18px", borderRadius: 6 }}>
-              Alumnos
-            </button>
-          </Link>
-
-          <Link href="/docentes">
-            <button style={{ backgroundColor: "#E0E0E0", padding: "10px 18px", borderRadius: 6 }}>
-              Docentes
-            </button>
-          </Link>
-
-          <button onClick={logout} style={{ backgroundColor: "#d9534f", color: "#fff", padding: "10px 18px", borderRadius: 6 }}>
-            Cerrar sesión
+            Limpiar filtros
           </button>
-        </div>
 
-        {/* INTERESES */}
-        <div style={{ background: "#fff", padding: 25, borderRadius: 12 }}>
-          <h3>Seleccionar interés</h3>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {intereses.map((i) => (
-              <button
-                key={i}
-                onClick={() => setInteres(i)}
-                style={{
-                  padding: "10px 15px",
-                  borderRadius: 8,
-                  border: "none",
-                  cursor: "pointer",
-                  background: interes === i ? "#005CA9" : "#E5E7EB",
-                  color: interes === i ? "#fff" : "#111"
-                }}
-              >
-                {i}
-              </button>
-            ))}
+          <div style={innerGlass()}>
+            {categoriaActiva ? (
+              <>
+                <h4 style={{ color: "white" }}>{categoriaActiva}</h4>
+                <ul style={{ color: "white" }}>
+                  {CATEGORY_MAP[categoriaActiva].map((i) => (
+                    <li key={i}>{i}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p style={{ color: "white" }}>
+                Pasa el mouse o selecciona categoría
+              </p>
+            )}
           </div>
         </div>
 
-        {/* EMAILS */}
-        {interes && (
-          <div style={{ marginTop: 20, background: "#fff", padding: 25, borderRadius: 12 }}>
-            
-            <h3>{interes} — {total} emails</h3>
+        {/* MAIN */}
+        <div style={glass(true)}>
 
-            {/* INFO BLOQUE */}
-            <p>
-              Mostrando bloque de "100" contactos {chunkIndex + 1} de {emailChunks.length}
-            </p>
+          {/* HEADER */}
+          <div style={header()}>
+            <img src="/Membrete-UNVMHumanas.png" style={{ height: 60 }} />
+            <h1 style={{ color: "white" }}>
+              UNVM · Sistema de Mailing
+            </h1>
+            <img src="/Membrete-UNVMHumanas.png" style={{ height: 60 }} />
+          </div>
 
-            {/* SELECTOR BLOQUES */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-              {emailChunks.map((_, i) => (
+          {/* BOTONES */}
+          <div style={row()}>
+            <Link href="/alumnos">
+              <button style={btnPrimary}>Alumnos</button>
+            </Link>
+
+            <Link href="/docentes">
+              <button style={btnSecondary}>Docentes</button>
+            </Link>
+
+            <button onClick={logout} style={btnDanger}>
+              Cerrar sesión
+            </button>
+          </div>
+
+          {/* INTERESES */}
+          <div style={innerGlass()}>
+            <h3 style={{ color: "white" }}>Seleccionar interés</h3>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {intereses.map((i) => (
                 <button
                   key={i}
-                  onClick={() => setChunkIndex(i)}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    border: "none",
-                    cursor: "pointer",
-                    background: chunkIndex === i ? "#005CA9" : "#E5E7EB",
-                    color: chunkIndex === i ? "#fff" : "#111"
-                  }}
+                  onClick={() => setInteres(i)}
+                  style={pill(i === interes)}
                 >
-                  Bloque {i + 1}
+                  {i}
                 </button>
               ))}
             </div>
-
-            {/* TEXTAREA */}
-            <textarea
-              value={emailChunks[chunkIndex]?.join(",") || ""}
-              readOnly
-              style={{ width: "100%", height: 150 }}
-            />
-
-            <button onClick={copiar} style={{ marginTop: 10, padding: 10, background: "#F2A900" }}>
-              Copiar bloque
-            </button>
-
           </div>
-        )}
+
+          {/* EMAILS */}
+          {interes && (
+            <div style={innerGlass()}>
+              <h3 style={{ color: "white" }}>
+                {interes} — {total} emails
+              </h3>
+
+              <p style={{ color: "white" }}>
+                Bloque {chunkIndex + 1} de {emailChunks.length}
+              </p>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {emailChunks.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setChunkIndex(i)}
+                    style={pill(i === chunkIndex)}
+                  >
+                    Bloque {i + 1}
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                value={emailChunks[chunkIndex]?.join(",") || ""}
+                readOnly
+                style={{
+                  width: "100%",
+                  height: 150,
+                  marginTop: 10,
+                  borderRadius: 10,
+                  padding: 10,
+                  background: "rgba(255,255,255,0.9)",
+                  border: "none",
+                }}
+              />
+
+              <button onClick={copiar} style={btnPrimary}>
+                Copiar bloque
+              </button>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );
 }
+
+/* =========================
+   GLASS HELPERS
+========================= */
+
+const glass = (main = false) => ({
+  width: main ? "100%" : 280,
+  padding: 15,
+  borderRadius: 16,
+  background: "rgba(255,255,255,0.12)",
+  backdropFilter: "blur(14px)",
+  boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
+  border: "1px solid rgba(255,255,255,0.2)",
+});
+
+const innerGlass = () => ({
+  marginTop: 15,
+  padding: 12,
+  borderRadius: 12,
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.15)",
+});
+
+const header = () => ({
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: 20,
+  marginBottom: 15,
+});
+
+const row = () => ({
+  display: "flex",
+  justifyContent: "center",
+  gap: 10,
+  marginBottom: 20,
+});
+
+const btnPrimary = {
+  backgroundColor: "#005CA9",
+  color: "white",
+  padding: "10px 18px",
+  borderRadius: 10,
+  border: "none",
+  cursor: "pointer",
+};
+
+const btnSecondary = {
+  backgroundColor: "rgba(255,255,255,0.2)",
+  color: "white",
+  padding: "10px 18px",
+  borderRadius: 10,
+  border: "1px solid rgba(255,255,255,0.3)",
+  cursor: "pointer",
+};
+
+const btnDanger = {
+  backgroundColor: "#d9534f",
+  color: "#fff",
+  padding: "10px 18px",
+  borderRadius: 10,
+  border: "none",
+  cursor: "pointer",
+};
+
+const pill = (active) => ({
+  padding: "8px 12px",
+  borderRadius: 20,
+  border: "1px solid rgba(255,255,255,0.2)",
+  cursor: "pointer",
+  background: active ? "#005CA9" : "rgba(255,255,255,0.12)",
+  color: "white",
+});
