@@ -20,23 +20,21 @@ export default function LoginPage() {
 
   return (
     <div
-  style={{
-    fontFamily: "Arial",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 20,
-  }}
->
+      style={{
+        fontFamily: "Arial",
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
       <div
         style={{
           padding: 30,
           borderRadius: 12,
           backgroundColor: "#ffffff",
-          width: "90%",
-          maxWidth: 320,
+          width: 320,
           boxShadow: "0px 4px 12px rgba(0,0,0,0.1)",
           textAlign: "center",
         }}
