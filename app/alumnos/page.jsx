@@ -8,10 +8,10 @@ import Link from "next/link";
    CATEGORÍAS
 ========================= */
 const CATEGORY_MAP = {
-  SALUD: ["ENFERMERÍA", "SALUD MENTAL", "MEDICINA", "ALZHEIMER", "ESTRÉS", "TERAPIA OCUPACIONAL", "LEY SALUD MENTAL", "NUTRICIÓN"],
+  SALUD: ["ENFERMERÍA","PSICOPEDAGOGIA" ,"SALUD MENTAL", "MEDICINA", "ALZHEIMER", "ESTRÉS", "TERAPIA OCUPACIONAL", "NUTRICIÓN"],
   IDIOMAS: ["INGLÉS", "PORTUGUÉS", "FRANCÉS", "ITALIANO", "ALEMÁN"],
-  IDIOMAS_EDUCACION: ["LENGUAJE DE SEÑAS"],
-  EDUCACION: ["DOCENCIA", "EDUCACIÓN"],
+  LENGUA_DE_SEÑAS: ["LENGUA DE SEÑAS"],
+  EDUCACION: ["DOCENCIA", "EDUCACION"],
   EDUCACION_FISICA: ["EDUCACION FISICA", "DEPORTES", "RUGBY", "FÚTBOL"],
   ARTE_COMUNITARIO: ["ARTE", "PATRIMONIO"],
   COMUNICACION_DIGITAL: ["AUDIOVISUAL", "STREAMING", "FOTOGRAFÍA"],
@@ -22,6 +22,17 @@ const CATEGORY_MAP = {
   MATEMATICA: ["MATEMATICA"],
   OTROS: ["OTROS"]
 };
+
+/* 🔥 CATEGORÍAS QUE NO DEBEN MOSTRAR SUBFILTRO */
+const NO_SUBFILTER = [
+  "ARTE_COMUNITARIO",
+  "HUMANIDADES",
+  "TECNOLOGIA_EDUCATIVA",
+  "MUSICA",
+  "OTROS",
+  "LENGUA_LITERATURA",
+  "LENGUA_DE_SEÑAS"
+];
 
 export default function AlumnosPage() {
   const router = useRouter();
@@ -37,6 +48,7 @@ export default function AlumnosPage() {
   };
 
   const [interes, setInteres] = useState(null);
+  const [subInteres, setSubInteres] = useState(null);
   const [total, setTotal] = useState(0);
   const [intereses, setIntereses] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
@@ -50,9 +62,12 @@ export default function AlumnosPage() {
       .then((d) => setIntereses(d.intereses || []));
   }, []);
 
+  /* 🔥 FETCH con subfiltro */
   useEffect(() => {
-    if (interes) {
-      fetch(`/api/send?interes=${interes}`)
+    const filtro = subInteres || interes;
+
+    if (filtro) {
+      fetch(`/api/send?interes=${filtro}`)
         .then((r) => r.json())
         .then((d) => {
           const allEmails = (d.emails || "")
@@ -70,7 +85,7 @@ export default function AlumnosPage() {
           setTotal(d.total || 0);
         });
     }
-  }, [interes]);
+  }, [interes, subInteres]);
 
   const copiar = () => {
     const current = emailChunks[chunkIndex]?.join(",") || "";
@@ -80,6 +95,7 @@ export default function AlumnosPage() {
   /* 🔥 LIMPIAR FILTROS */
   const limpiarFiltros = () => {
     setInteres(null);
+    setSubInteres(null);
     setCategoriaActiva(null);
     setEmailChunks([]);
     setChunkIndex(0);
@@ -206,23 +222,49 @@ export default function AlumnosPage() {
             <h3 style={{ color: "white" }}>Seleccionar interés</h3>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {intereses.map((i) => (
+              {Object.keys(CATEGORY_MAP).map((cat) => (
                 <button
-                  key={i}
-                  onClick={() => setInteres(i)}
-                  style={pill(i === interes)}
+                  key={cat}
+                  onClick={() => {
+                    setInteres(cat);
+                    setSubInteres(null);
+                  }}
+                  style={pill(cat === interes)}
                 >
-                  {i}
+                  {cat}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* 🔥 SUBFILTRO CON CONTROL */}
+          {interes &&
+            CATEGORY_MAP[interes]?.length > 1 &&
+            !NO_SUBFILTER.includes(interes) && (
+              <div style={innerGlass()}>
+                <h4 style={{ color: "white" }}>
+                  Filtrar por {interes.toLowerCase()}
+                </h4>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {CATEGORY_MAP[interes].map((sub) => (
+                    <button
+                      key={sub}
+                      onClick={() => setSubInteres(sub)}
+                      style={pill(subInteres === sub)}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
           {/* EMAILS */}
-          {interes && (
+          {(interes || subInteres) && (
             <div style={innerGlass()}>
               <h3 style={{ color: "white" }}>
-                {interes} — {total} emails
+                {subInteres || interes} — {total} emails
               </h3>
 
               <p style={{ color: "white" }}>

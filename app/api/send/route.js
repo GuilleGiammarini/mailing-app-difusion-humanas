@@ -6,6 +6,26 @@ let cache = {
 
 const CACHE_TTL = 60 * 1000; // 1 minuto
 
+// 🔥 NORMALIZADOR (ANTI BUGS)
+const normalize = (str) =>
+  (str || "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
+// 🔥 AGRUPACIONES DE INTERESES
+const CATEGORY_EXPANSION = {
+  IDIOMAS: ["INGLÉS", "PORTUGUÉS", "FRANCÉS", "ITALIANO", "ALEMÁN"],
+  COMUNICACION_DIGITAL: ["AUDIOVISUAL", "STREAMING", "FOTOGRAFÍA"],
+  EDUCACION: ["DOCENCIA", "EDUCACIÓN", "EDUCACION"],
+  LENGUA_DE_SEÑAS: ["LENGUA DE SEÑAS"],
+  EDUCACION_FISICA: ["EDUCACION FISICA", "DEPORTES", "RUGBY", "FÚTBOL"],
+  LENGUA_LITERATURA: ["LENGUA Y LITERATURA"],
+  TECNOLOGIA_EDUCATIVA: ["EDUCACIÓN_TECNOLOGIA"],
+
+};
+
 export async function GET(request) {
   try {
     const SHEET_ID = "1iblG9SpwGwhoPzyXNlZEOZteCa4upVgi9et4RBXg4Pk";
@@ -68,19 +88,34 @@ export async function GET(request) {
     }
 
     // =========================
+    // 🔥 EXPANSIÓN DE CATEGORÍA
+    // =========================
+    let interesesABuscar = [];
+
+    if (CATEGORY_EXPANSION[INTERES_BUSCADO]) {
+      interesesABuscar = CATEGORY_EXPANSION[INTERES_BUSCADO];
+    } else {
+      interesesABuscar = [INTERES_BUSCADO];
+    }
+
+    // 🔥 NORMALIZAR TODO
+    const interesesNormalizados = interesesABuscar.map(normalize);
+
+    // =========================
     // 📧 FILTRO EMAILS
     // =========================
     const emailsUnicos = [
       ...new Set(
         data
-          .filter(
-            (r) =>
-              r.correo &&
-              r.interes &&
-              r.interes.toLowerCase().includes(
-                INTERES_BUSCADO.toLowerCase()
-              )
-          )
+          .filter((r) => {
+            if (!r.correo || !r.interes) return false;
+
+            const interesFila = normalize(r.interes);
+
+            return interesesNormalizados.some((interes) =>
+              interesFila.includes(interes)
+            );
+          })
           .map((r) => r.correo)
       ),
     ];
