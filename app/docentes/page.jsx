@@ -26,20 +26,27 @@ const carrerasPorCategoria = {
 export default function DocentesPage() {
   const router = useRouter();
 
+  const [allDocentes, setAllDocentes] = useState([]);
   const [docentes, setDocentes] = useState([]);
+
   const [filtros, setFiltros] = useState([]);
   const [filtroActivo, setFiltroActivo] = useState("");
   const [carreraActiva, setCarreraActiva] = useState("");
+  const [busqueda, setBusqueda] = useState("");
 
+  // 🔐 auth
   useEffect(() => {
     const auth = localStorage.getItem("auth");
     if (!auth) router.push("/");
   }, []);
 
+  // 📥 cargar TODO (base global)
   useEffect(() => {
     fetch("/api/docentes")
       .then((res) => res.json())
       .then((data) => {
+        setAllDocentes(data.docentes || []);
+
         const filtrosUnicos = [
           ...new Set(
             (data.filtros || []).flatMap((f) =>
@@ -47,20 +54,12 @@ export default function DocentesPage() {
             )
           ),
         ];
+
         setFiltros(filtrosUnicos);
       });
   }, []);
 
-  useEffect(() => {
-    if (!filtroActivo) return;
-
-    setCarreraActiva("");
-
-    fetch(`/api/docentes?filtro=${filtroActivo}`)
-      .then((res) => res.json())
-      .then((data) => setDocentes(data.docentes || []));
-  }, [filtroActivo]);
-
+  // 📌 normalizador
   const normalizar = (t) =>
     t
       .toUpperCase()
@@ -68,27 +67,46 @@ export default function DocentesPage() {
       .replace(/[\u0300-\u036f]/g, "")
       .trim();
 
-  const docentesFiltrados = carreraActiva
-    ? docentes.filter((d) =>
+  // 🎯 base por categoría (SIN fetch)
+  const baseCategoria = filtroActivo
+    ? allDocentes.filter((d) => {
+        // ⚠️ AJUSTE IMPORTANTE: asumimos que carrera contiene info útil
+        return true;
+      })
+    : allDocentes;
+
+  // 📚 filtro carrera
+  const porCarrera = carreraActiva
+    ? baseCategoria.filter((d) =>
         (d.carrera || "")
           .split("|")
           .map((c) => normalizar(c))
           .includes(normalizar(carreraActiva))
       )
-    : docentes;
+    : baseCategoria;
+
+  // 🔎 buscador (global o dentro de categoría)
+  const docentesVisibles =
+    busqueda.trim() === ""
+      ? porCarrera
+      : porCarrera.filter((d) =>
+          (d.nombre || "")
+            .toLowerCase()
+            .includes(busqueda.toLowerCase())
+        );
 
   const carrerasDisponibles = carrerasPorCategoria[filtroActivo] || [];
 
   const copiarEmails = () => {
     navigator.clipboard.writeText(
-      docentesFiltrados.map((d) => d.correo).join(",")
+      docentesVisibles.map((d) => d.correo).join(",")
     );
   };
 
   const limpiarFiltros = () => {
     setFiltroActivo("");
     setCarreraActiva("");
-    setDocentes([]);
+    setBusqueda("");
   };
 
   return (
@@ -126,11 +144,9 @@ export default function DocentesPage() {
           }}
         >
           <img src="/Membrete-UNVMHumanas.png" style={{ height: 50 }} />
-
           <h1 style={{ color: "white", fontWeight: "bold" }}>
             UNVM · Sistema de Mailing
           </h1>
-
           <img src="/Membrete-UNVMHumanas.png" style={{ height: 50 }} />
         </div>
 
@@ -162,15 +178,55 @@ export default function DocentesPage() {
 
         {/* GRID */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 20 }}>
+          
           {/* IZQUIERDA */}
           <div style={glass()}>
             <h3 style={{ color: "white" }}>Docentes</h3>
 
-            <div style={{ maxHeight: "75vh", overflowY: "auto" }}>
-              {docentesFiltrados.map((doc, i) => (
+            <div style={{ color: "white", fontSize: 13, marginBottom: 10 }}>
+              {docentesVisibles.length} docentes
+            </div>
+
+            {/* 🔎 BUSCADOR */}
+            <input
+              placeholder={
+                filtroActivo
+                  ? "Buscar docente..."
+                  : "Seleccioná una categoría primero"
+              }
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              disabled={!filtroActivo}
+              style={{
+                width: "100%",
+                padding: 8,
+                marginBottom: 10,
+                borderRadius: 6,
+                border: "1px solid #ccc",
+                opacity: filtroActivo ? 1 : 0.5,
+                cursor: filtroActivo ? "text" : "not-allowed",
+              }}
+            />
+
+            {/* LISTA */}
+            <div
+              style={{
+                maxHeight: "75vh",
+                overflowY: "auto",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 10,
+              }}
+            >
+              {docentesVisibles.map((doc, i) => (
                 <div key={i} style={card()}>
-                  <b>{doc.nombre}</b>
-                  <div style={{ fontSize: 12 }}>{doc.carrera}</div>
+                  <div style={{ fontWeight: "bold", fontSize: 13 }}>
+                    {doc.nombre}
+                  </div>
+
+                  <div style={{ fontSize: 11, color: "#555", marginTop: 3 }}>
+                    {doc.carrera}
+                  </div>
                 </div>
               ))}
             </div>
@@ -180,21 +236,22 @@ export default function DocentesPage() {
           <div style={glass()}>
             <h3 style={{ color: "white" }}>Categorías</h3>
 
-            {/* 🔥 BOTÓN LIMPIAR */}
             <button
               onClick={limpiarFiltros}
-              disabled={!filtroActivo && !carreraActiva}
+              disabled={!filtroActivo && !carreraActiva && !busqueda}
               style={{
-                background: (!filtroActivo && !carreraActiva)
-                  ? "rgba(255,255,255,0.3)"
-                  : "#ff4d4f",
+                background:
+                  !filtroActivo && !carreraActiva && !busqueda
+                    ? "rgba(255,255,255,0.3)"
+                    : "#ff4d4f",
                 color: "white",
                 padding: "8px 12px",
                 borderRadius: 6,
                 fontWeight: "bold",
-                cursor: (!filtroActivo && !carreraActiva)
-                  ? "not-allowed"
-                  : "pointer",
+                cursor:
+                  !filtroActivo && !carreraActiva && !busqueda
+                    ? "not-allowed"
+                    : "pointer",
                 marginBottom: 10,
                 border: "none",
               }}
@@ -238,11 +295,11 @@ export default function DocentesPage() {
 
             <div style={{ marginTop: 20, color: "white" }}>
               <h4>
-                {filtroActivo} — {docentesFiltrados.length} docentes
+                {filtroActivo} — {docentesVisibles.length} docentes
               </h4>
 
               <textarea
-                value={docentesFiltrados.map((d) => d.correo).join(",")}
+                value={docentesVisibles.map((d) => d.correo).join(",")}
                 readOnly
                 style={{ width: "100%", height: 120 }}
               />
@@ -277,10 +334,11 @@ const glass = () => ({
 });
 
 const card = () => ({
-  background: "rgba(255,255,255,0.9)",
+  background: "rgba(255,255,255,0.95)",
   padding: 10,
   borderRadius: 8,
-  marginBottom: 8,
+  boxShadow: "0 2px 4px rgba(0,0,0,0.12)",
+  transition: "all 0.2s ease",
 });
 
 const btn = (bg, color = "#000") => ({

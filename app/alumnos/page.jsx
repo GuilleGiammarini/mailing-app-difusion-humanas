@@ -145,15 +145,26 @@ export default function AlumnosPage() {
           <h2 style={{ color: "white" }}>Categorías</h2>
 
           {Object.keys(CATEGORY_MAP).map((cat) => (
-            <div
-              key={cat}
-              onMouseEnter={() => setCategoriaActiva(cat)}
-              onClick={() => setCategoriaActiva(cat)}
-              style={pill(cat === categoriaActiva)}
-            >
-              {cat}
-            </div>
-          ))}
+  <div
+    key={cat}
+    onMouseEnter={(e) => {
+      setCategoriaActiva(cat);
+      e.currentTarget.style.transform = "scale(1.03)";
+      e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = "scale(1)";
+      e.currentTarget.style.background =
+        cat === categoriaActiva
+          ? "linear-gradient(135deg, #005CA9, #007BFF)"
+          : "rgba(255,255,255,0.08)";
+    }}
+    onClick={() => setCategoriaActiva(cat)}
+    style={pill(cat === categoriaActiva)}
+  >
+    {cat}
+  </div>
+))}
 
           <button
             onClick={limpiarFiltros}
@@ -241,8 +252,8 @@ export default function AlumnosPage() {
           {interes &&
             CATEGORY_MAP[interes]?.length > 1 &&
             !NO_SUBFILTER.includes(interes) && (
-              <div style={innerGlass()}>
-                <h4 style={{ color: "white" }}>
+              <div style={subFilterBox()}>
+                <h4 style={{ color: "#222" }}>
                   Filtrar por {interes.toLowerCase()}
                 </h4>
 
@@ -251,7 +262,7 @@ export default function AlumnosPage() {
                     <button
                       key={sub}
                       onClick={() => setSubInteres(sub)}
-                      style={pill(subInteres === sub)}
+                      style={pillSub(subInteres === sub)}
                     >
                       {sub}
                     </button>
@@ -314,13 +325,17 @@ export default function AlumnosPage() {
 ========================= */
 
 const glass = (main = false) => ({
-  width: main ? "100%" : 280,
+  width: main ? "100%" : 220,
+  minWidth: main ? "auto" : 220,   // 🔥 evita que se achique
+  maxWidth: main ? "none" : 220,   // 🔥 evita que crezca
   padding: 15,
   borderRadius: 16,
-  background: "rgba(255,255,255,0.12)",
+  background: main
+    ? "rgba(255,255,255,0.12)"
+    : "rgba(20,20,20,0.55)", // 🔥 más oscuro el sidebar
   backdropFilter: "blur(14px)",
-  boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
-  border: "1px solid rgba(255,255,255,0.2)",
+  boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
+  border: "1px solid rgba(255,255,255,0.15)",
 });
 
 const innerGlass = () => ({
@@ -329,6 +344,17 @@ const innerGlass = () => ({
   borderRadius: 12,
   background: "rgba(255,255,255,0.08)",
   border: "1px solid rgba(255,255,255,0.15)",
+});
+
+const subFilterBox = () => ({
+  marginTop: 15,
+  padding: 14,
+  borderRadius: 14,
+  background: "rgba(255,255,255,0.65)", // 🔥 BLANCO DIFUMINADO
+  backdropFilter: "blur(12px)",         // 🔥 EFECTO VIDRIO CLARO
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255,255,255,0.5)",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
 });
 
 const header = () => ({
@@ -374,10 +400,40 @@ const btnDanger = {
 };
 
 const pill = (active) => ({
+  padding: "10px 14px",
+  borderRadius: 999,
+  cursor: "pointer",
+  marginBottom: 6,
+  fontSize: 13,
+  letterSpacing: 0.3,
+  transition: "all 0.25s ease",
+
+  background: active
+    ? "linear-gradient(135deg, #005CA9, #007BFF)"
+    : "rgba(255,255,255,0.08)",
+
+  color: active ? "#fff" : "rgba(255,255,255,0.85)",
+
+  border: active
+    ? "none"
+    : "1px solid rgba(255,255,255,0.15)",
+
+  boxShadow: active
+    ? "0 4px 12px rgba(0,0,0,0.3)"
+    : "none",
+});
+const pillSub = (active) => ({
   padding: "8px 12px",
   borderRadius: 20,
-  border: "1px solid rgba(255,255,255,0.2)",
   cursor: "pointer",
-  background: active ? "#005CA9" : "rgba(255,255,255,0.12)",
-  color: "white",
+  transition: "all 0.2s ease",
+  border: active
+    ? "none"
+    : "1px solid rgba(0,0,0,0.1)",
+  background: active
+    ? "#005CA9"
+    : "rgba(255,255,255,0.85)",
+  color: active
+    ? "white"
+    : "#333",
 });
